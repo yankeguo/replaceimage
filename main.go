@@ -84,14 +84,18 @@ func main() {
 					}
 				}
 
-			next:
-				for _, item := range opts.ImagePullSecrets {
-					for _, currentItem := range currentPod.Spec.ImagePullSecrets {
-						if currentItem.Name == item.Name {
-							continue next
+				if len(currentPod.Spec.ImagePullSecrets) == 0 {
+					rw.PatchReplace("/spec/imagePullSecrets", opts.ImagePullSecrets)
+				} else {
+				next:
+					for _, item := range opts.ImagePullSecrets {
+						for _, currentItem := range currentPod.Spec.ImagePullSecrets {
+							if currentItem.Name == item.Name {
+								continue next
+							}
 						}
+						rw.PatchAdd("/spec/imagePullSecrets/-", item)
 					}
-					rw.PatchAdd("/spec/imagePullSecrets/-", item)
 				}
 
 				return
