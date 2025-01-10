@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/yankeguo/ezadmis"
@@ -24,7 +25,32 @@ func loadOptions() (opts Options, err error) {
 	defer rg.Guard(&err)
 	buf := rg.Must(os.ReadFile("/config/replaceimage.json"))
 	rg.Must0(json.Unmarshal(buf, &opts))
+
+	// standardize image names
+	mappings := make(map[string]string)
+	for key, val := range opts.ImageMappings {
+		mappings[standardizeImage(key)] = val
+	}
+	opts.ImageMappings = mappings
 	return
+}
+
+func standardizeImage(image string) string {
+	if !strings.Contains(image, ":") {
+		image += ":latest"
+	}
+
+	splits := strings.Split(image, "/")
+
+	if len(splits) > 1 {
+		if strings.Contains(splits[0], ".") || strings.Contains(splits[0], ":") {
+			return image
+		} else {
+			return "docker.io/" + image
+		}
+	}
+
+	return "docker.io/library/" + image
 }
 
 func main() {
@@ -41,13 +67,13 @@ func main() {
 				rg.Must0(json.Unmarshal(buf, &currentPod))
 
 				for i, c := range currentPod.Spec.Containers {
-					if newImage, ok := opts.ImageMappings[c.Image]; ok {
+					if newImage, ok := opts.ImageMappings[standardizeImage(c.Image)]; ok {
 						rw.PatchReplace(fmt.Sprintf("/spec/containers/%d/image", i), newImage)
 					}
 				}
 
 				for i, c := range currentPod.Spec.InitContainers {
-					if newImage, ok := opts.ImageMappings[c.Image]; ok {
+					if newImage, ok := opts.ImageMappings[standardizeImage(c.Image)]; ok {
 						rw.PatchReplace(fmt.Sprintf("/spec/initContainers/%d/image", i), newImage)
 					}
 				}
