@@ -4,7 +4,7 @@ A Kubernetes admission webhook that replaces container images for airgapped Kube
 
 ## Installation
 
-**Prepare configuration for `replaceimage`**
+### Prepare configuration for `replaceimage`
 
 ```json
 {
@@ -19,7 +19,7 @@ A Kubernetes admission webhook that replaces container images for airgapped Kube
 }
 ```
 
-**Prepare ConfigMap for `replaceimage`**
+### Prepare ConfigMap for `replaceimage`
 
 ```yaml
 apiVersion: v1
@@ -32,11 +32,11 @@ data:
     PUT CONFIGURATION HERE!!!
 ```
 
-**Complete RBAC initialization for `ezadmis-install`**
+### Complete RBAC initialization for `ezadmis-install`
 
 See https://github.com/yankeguo/ezadmis/tree/main/cmd/ezadmis-install#rbac-initialization
 
-**Prepare configuration for `ezadmis-install`**
+### Prepare configuration for `ezadmis-install`
 
 ```json
 {
@@ -54,7 +54,6 @@ See https://github.com/yankeguo/ezadmis/tree/main/cmd/ezadmis-install#rbac-initi
   "sideEffects": "Some",
   "failurePolicy": "Ignore",
   "image": "yankeguo/replaceimage:latest",
-  // "imagePullSecrets": []
   "volumes": [
     {
       "name": "vol-cfg",
@@ -74,7 +73,7 @@ See https://github.com/yankeguo/ezadmis/tree/main/cmd/ezadmis-install#rbac-initi
 
 More details can be found at https://github.com/yankeguo/ezadmis/tree/main/cmd/ezadmis-install
 
-**Install `replaceimage` with `ezadmis-install`**
+### Install `replaceimage` with `ezadmis-install`
 
 ```yaml
 apiVersion: v1
