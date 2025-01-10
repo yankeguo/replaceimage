@@ -53,7 +53,8 @@ See https://github.com/yankeguo/ezadmis/tree/main/cmd/ezadmis-install#rbac-initi
   ],
   "sideEffects": "Some",
   "failurePolicy": "Ignore",
-  "image": "yankeguo/replaceimage:latest",
+  "image": "yankeguo/replaceimage:0.2.0",
+  "imagePullPolicy": "IfNotPresent",
   "volumes": [
     {
       "name": "vol-cfg",
@@ -98,8 +99,8 @@ spec:
       automountServiceAccountToken: true
       containers:
         - name: install-replaceimage
-          image: yankeguo/ezadmis-install
-          imagePullPolicy: Always
+          image: yankeguo/ezadmis-install:0.4.1
+          imagePullPolicy: IfNotPresent
           args:
             - /ezadmis-install
             - -conf
