@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.1.1 - 2025-01-10
+#### Features
+- handle the case like docker.io/[REPO] - (5592c28) - GUO YANKE
+
+- - -
+
 ## v0.1.0 - 2025-01-10
 #### Build system
 - add github actions - (cee9707) - GUO YANKE
