@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -60,8 +61,11 @@ func standardizeImage(image string) string {
 }
 
 func main() {
+	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
+
 	server := ezadmis.NewWebhookServer(
 		ezadmis.WebhookServerOptions{
+			Debug: debug,
 			Handler: func(ctx context.Context, req *admission_v1.AdmissionRequest, rw ezadmis.WebhookResponseWriter) (err error) {
 				defer rg.Guard(&err)
 
