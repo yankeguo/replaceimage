@@ -3,7 +3,7 @@ module github.com/yankeguo/replaceimage
 go 1.23.4
 
 require (
-	github.com/yankeguo/ezadmis v0.3.1
+	github.com/yankeguo/ezadmis v0.4.0
 	github.com/yankeguo/rg v1.3.1
 	k8s.io/api v0.32.0
 )
