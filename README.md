@@ -11,6 +11,25 @@ A Kubernetes admission webhook that replaces container images for airgapped Kube
   "imageMappings": {
     "clickhouse:latest": "myregistry/clickhouse:latest"
   },
+  "autoImageMappings": {
+    "sourceRegistries": ["docker.io", "quay.io", "gcr.io", "ghcr.io"],
+    "targetRegistry": "registry.mycompany.com/namespace",
+    "webhook": {
+      "url": "https://webhook.mycompany.com/jenkins/jobs/replaceimage",
+      "query": {
+        "ARG_SRC": "${{sourceImage}}",
+        "ARG_DST": "${{targetImage}}"
+      },
+      "form": {
+        "ARG_SRC": "${{sourceImage}}",
+        "ARG_DST": "${{targetImage}}"
+      },
+      "json": {
+        "ARG_SRC": "${{sourceImage}}",
+        "ARG_DST": "${{targetImage}}"
+      }
+    }
+  },
   "imagePullSecrets": [
     {
       "name": "myregistrykey"
@@ -18,6 +37,17 @@ A Kubernetes admission webhook that replaces container images for airgapped Kube
   ]
 }
 ```
+
+**Auto Image Mapping Rules**
+
+- `.`, `/` will be replaced with `-` in the target image name.
+- Duplicated path components will be removed.
+
+Examples:
+
+- `source.registry/my-org/my-image` -> `registry.mycompany.com/namespace/source-registry-my-org-my-image`
+- `source.registry/my-image/my-image` -> `registry.mycompany.com/namespace/source-registry-my-image`
+- `source.registry/my-org/my-image/my-image` -> `registry.mycompany.com/namespace/source-registry-my-org-my-image`
 
 ### 2. Prepare ConfigMap for `replaceimage`
 
