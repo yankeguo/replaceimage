@@ -60,7 +60,7 @@ func (opts Options) CreateMapper() (m *ImageMapper) {
 	return &ImageMapper{opts: opts}
 }
 
-func (m *ImageMapper) Lookup(image string) (newImage string, ok bool) {
+func (m *ImageMapper) Lookup(namespace string, image string) (newImage string, ok bool) {
 	image = standardizeImage(image)
 	newImage, ok = m.opts.ImageMappings[image]
 	return
@@ -87,14 +87,14 @@ func main() {
 				var replaced bool
 
 				for i, c := range currentPod.Spec.Containers {
-					if newImage, ok := im.Lookup(c.Image); ok {
+					if newImage, ok := im.Lookup(req.Namespace, c.Image); ok {
 						rw.PatchReplace(fmt.Sprintf("/spec/containers/%d/image", i), newImage)
 						replaced = true
 					}
 				}
 
 				for i, c := range currentPod.Spec.InitContainers {
-					if newImage, ok := im.Lookup(c.Image); ok {
+					if newImage, ok := im.Lookup(req.Namespace, c.Image); ok {
 						rw.PatchReplace(fmt.Sprintf("/spec/initContainers/%d/image", i), newImage)
 						replaced = true
 					}
