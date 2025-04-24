@@ -12,3 +12,10 @@ func TestStandardizeImage(t *testing.T) {
 	require.Equal(t, "docker.io/library/alpine:3.18", standardizeImage("docker.io/alpine:3.18"))
 	require.Equal(t, "gcr.io/hello:v2", standardizeImage("gcr.io/hello:v2"))
 }
+
+func TestFlattenImage(t *testing.T) {
+	require.Equal(t, "docker-io-library-nginx:latest", flattenImage("docker.io/library/nginx:latest"))
+	require.Equal(t, "docker-io-yankeguo-minit:latest", flattenImage("docker.io/yankeguo/minit:latest"))
+	require.Equal(t, "docker-io-library-alpine:3.18", flattenImage("docker.io/library/alpine:3.18"))
+	require.Equal(t, "gcr-io-hello:v2", flattenImage("gcr.io/hello:v2"))
+}

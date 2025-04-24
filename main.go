@@ -53,6 +53,26 @@ func loadOptions() (opts Options, err error) {
 	return
 }
 
+func flattenImage(image string) string {
+	comps := strings.Split(image, "/")
+	if len(comps) < 2 {
+		return image
+	}
+	var shim []string
+	for _, item := range comps[:len(comps)-1] {
+		// ignore duplicated path component
+		if len(shim) > 0 && shim[len(shim)-1] == item {
+			continue
+		}
+		shim = append(shim, item)
+	}
+	for i := range shim {
+		shim[i] = strings.ReplaceAll(shim[i], ".", "-")
+		shim[i] = strings.ReplaceAll(shim[i], "_", "-")
+	}
+	return strings.Join(shim, "-") + "-" + comps[len(comps)-1]
+}
+
 func standardizeImage(image string) string {
 	if !strings.Contains(image, ":") {
 		image += ":latest"
