@@ -16,56 +16,6 @@ import (
 	core_v1 "k8s.io/api/core/v1"
 )
 
-type Options struct {
-	ImageMappings    map[string]string `json:"imageMappings"`
-	ImageAutoMapping struct {
-		Match struct {
-			Namespaces []string `json:"namespaces"`
-			Images     []string `json:"images"`
-		} `json:"match"`
-		Registry string `json:"registry"`
-		Webhook  struct {
-			Override struct {
-				Registry string `json:"registry"`
-			} `json:"override"`
-			URL     string         `json:"url"`
-			Headers map[string]any `json:"headers"`
-			Query   map[string]any `json:"query"`
-			Form    map[string]any `json:"form"`
-			JSON    map[string]any `json:"json"`
-		} `json:"webhook"`
-	} `json:"imageAutoMapping"`
-	ImagePullSecrets []core_v1.LocalObjectReference `json:"imagePullSecrets"`
-}
-
-type ImageMapper struct {
-	opts Options
-}
-
-func loadOptions() (opts Options, err error) {
-	defer rg.Guard(&err)
-	buf := rg.Must(os.ReadFile("/config/replaceimage.json"))
-	rg.Must0(json.Unmarshal(buf, &opts))
-
-	// standardize image names
-	mappings := make(map[string]string)
-	for key, val := range opts.ImageMappings {
-		mappings[standardizeImage(key)] = val
-	}
-	opts.ImageMappings = mappings
-	return
-}
-
-func (opts Options) CreateMapper() (m *ImageMapper) {
-	return &ImageMapper{opts: opts}
-}
-
-func (m *ImageMapper) Lookup(namespace string, image string) (newImage string, ok bool) {
-	image = standardizeImage(image)
-	newImage, ok = m.opts.ImageMappings[image]
-	return
-}
-
 func main() {
 	debug, _ := strconv.ParseBool(os.Getenv("DEBUG"))
 
@@ -75,9 +25,9 @@ func main() {
 			Handler: func(ctx context.Context, req *admission_v1.AdmissionRequest, rw ezadmis.WebhookResponseWriter) (err error) {
 				defer rg.Guard(&err)
 
-				opts := rg.Must(loadOptions())
+				opts := rg.Must(LoadOptions())
 
-				im := opts.CreateMapper()
+				rpl := rg.Must(NewReplacer(opts))
 
 				buf := rg.Must(req.Object.MarshalJSON())
 
@@ -87,14 +37,14 @@ func main() {
 				var replaced bool
 
 				for i, c := range currentPod.Spec.Containers {
-					if newImage, ok := im.Lookup(req.Namespace, c.Image); ok {
+					if newImage, ok := rpl.Lookup(req.Namespace, c.Image); ok {
 						rw.PatchReplace(fmt.Sprintf("/spec/containers/%d/image", i), newImage)
 						replaced = true
 					}
 				}
 
 				for i, c := range currentPod.Spec.InitContainers {
-					if newImage, ok := im.Lookup(req.Namespace, c.Image); ok {
+					if newImage, ok := rpl.Lookup(req.Namespace, c.Image); ok {
 						rw.PatchReplace(fmt.Sprintf("/spec/initContainers/%d/image", i), newImage)
 						replaced = true
 					}
@@ -117,6 +67,8 @@ func main() {
 						rw.PatchAdd("/spec/imagePullSecrets/-", item)
 					}
 				}
+
+				go rpl.InvokeWebhook()
 
 				return
 			},

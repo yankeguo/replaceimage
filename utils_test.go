@@ -19,3 +19,16 @@ func TestFlattenImage(t *testing.T) {
 	require.Equal(t, "docker-io-library-alpine:3.18", flattenImage("docker.io/library/alpine:3.18"))
 	require.Equal(t, "gcr-io-hello:v2", flattenImage("gcr.io/hello:v2"))
 }
+
+func TestExpandMap(t *testing.T) {
+	require.Equal(t, map[string]string{
+		"field1": "value1",
+		"field2": "hello:world",
+	}, expandMap(map[string]string{
+		"field1": "value1",
+		"field2": "$SOURCE_IMAGE:$TARGET_IMAGE",
+	}, map[string]string{
+		"SOURCE_IMAGE": "hello",
+		"TARGET_IMAGE": "world",
+	}))
+}

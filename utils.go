@@ -1,6 +1,9 @@
 package main
 
-import "strings"
+import (
+	"os"
+	"strings"
+)
 
 func flattenImage(image string) string {
 	comps := strings.Split(image, "/")
@@ -44,4 +47,15 @@ func standardizeImage(image string) string {
 	}
 
 	return "docker.io/" + image
+}
+
+func expandMap(src map[string]string, m map[string]string) map[string]string {
+	out := make(map[string]string)
+	for k, v := range src {
+		v = os.Expand(v, func(name string) string {
+			return m[name]
+		})
+		out[k] = v
+	}
+	return out
 }
