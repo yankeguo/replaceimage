@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 	"syscall"
 
 	"github.com/yankeguo/ezadmis"
@@ -39,6 +38,10 @@ type Options struct {
 	ImagePullSecrets []core_v1.LocalObjectReference `json:"imagePullSecrets"`
 }
 
+type ImageMapper struct {
+	opts Options
+}
+
 func loadOptions() (opts Options, err error) {
 	defer rg.Guard(&err)
 	buf := rg.Must(os.ReadFile("/config/replaceimage.json"))
@@ -53,48 +56,14 @@ func loadOptions() (opts Options, err error) {
 	return
 }
 
-func flattenImage(image string) string {
-	comps := strings.Split(image, "/")
-	if len(comps) < 2 {
-		return image
-	}
-	var shim []string
-	for _, item := range comps[:len(comps)-1] {
-		// ignore duplicated path component
-		if len(shim) > 0 && shim[len(shim)-1] == item {
-			continue
-		}
-		shim = append(shim, item)
-	}
-	for i := range shim {
-		shim[i] = strings.ReplaceAll(shim[i], ".", "-")
-		shim[i] = strings.ReplaceAll(shim[i], "_", "-")
-	}
-	return strings.Join(shim, "-") + "-" + comps[len(comps)-1]
+func (opts Options) CreateMapper() (m *ImageMapper) {
+	return &ImageMapper{opts: opts}
 }
 
-func standardizeImage(image string) string {
-	if !strings.Contains(image, ":") {
-		image += ":latest"
-	}
-
-	splits := strings.Split(image, "/")
-
-	// single part
-	if len(splits) < 2 {
-		return "docker.io/library/" + image
-	}
-
-	// custom domain
-	if strings.Contains(splits[0], ".") || strings.Contains(splits[0], ":") {
-		// first part is docker.io and only 2 parts
-		if len(splits) == 2 && splits[0] == "docker.io" {
-			return "docker.io/library/" + splits[1]
-		}
-		return image
-	}
-
-	return "docker.io/" + image
+func (m *ImageMapper) Lookup(image string) (newImage string, ok bool) {
+	image = standardizeImage(image)
+	newImage, ok = m.opts.ImageMappings[image]
+	return
 }
 
 func main() {
@@ -108,21 +77,31 @@ func main() {
 
 				opts := rg.Must(loadOptions())
 
+				im := opts.CreateMapper()
+
 				buf := rg.Must(req.Object.MarshalJSON())
 
 				var currentPod core_v1.Pod
 				rg.Must0(json.Unmarshal(buf, &currentPod))
 
+				var replaced bool
+
 				for i, c := range currentPod.Spec.Containers {
-					if newImage, ok := opts.ImageMappings[standardizeImage(c.Image)]; ok {
+					if newImage, ok := im.Lookup(c.Image); ok {
 						rw.PatchReplace(fmt.Sprintf("/spec/containers/%d/image", i), newImage)
+						replaced = true
 					}
 				}
 
 				for i, c := range currentPod.Spec.InitContainers {
-					if newImage, ok := opts.ImageMappings[standardizeImage(c.Image)]; ok {
+					if newImage, ok := im.Lookup(c.Image); ok {
 						rw.PatchReplace(fmt.Sprintf("/spec/initContainers/%d/image", i), newImage)
+						replaced = true
 					}
+				}
+
+				if !replaced {
+					return
 				}
 
 				if len(currentPod.Spec.ImagePullSecrets) == 0 {
