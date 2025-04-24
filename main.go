@@ -18,7 +18,24 @@ import (
 )
 
 type Options struct {
-	ImageMappings    map[string]string              `json:"imageMappings"`
+	ImageMappings    map[string]string `json:"imageMappings"`
+	ImageAutoMapping struct {
+		Match struct {
+			Namespaces []string `json:"namespaces"`
+			Images     []string `json:"images"`
+		} `json:"match"`
+		Registry string `json:"registry"`
+		Webhook  struct {
+			Override struct {
+				Registry string `json:"registry"`
+			} `json:"override"`
+			URL     string         `json:"url"`
+			Headers map[string]any `json:"headers"`
+			Query   map[string]any `json:"query"`
+			Form    map[string]any `json:"form"`
+			JSON    map[string]any `json:"json"`
+		} `json:"webhook"`
+	} `json:"imageAutoMapping"`
 	ImagePullSecrets []core_v1.LocalObjectReference `json:"imagePullSecrets"`
 }
 

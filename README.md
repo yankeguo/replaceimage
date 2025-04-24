@@ -11,22 +11,31 @@ A Kubernetes admission webhook that replaces container images for airgapped Kube
   "imageMappings": {
     "clickhouse:latest": "myregistry/clickhouse:latest"
   },
-  "autoImageMappings": {
-    "sourceRegistries": ["docker.io", "quay.io", "gcr.io", "ghcr.io"],
-    "targetRegistry": "registry.mycompany.com/namespace",
+  "imageAutoMapping": {
+    "match": {
+      "namespaces": ["default", "kube-.+"],
+      "images": ["^docker.io/.*", "^ghcr.io/.*", "^gcr.io/.*"]
+    },
+    "registry": "registry-vpc.mycompany.com",
     "webhook": {
+      "override": {
+        "registry": "registry.mycompany.com"
+      },
       "url": "https://webhook.mycompany.com/jenkins/jobs/replaceimage",
+      "headers": {
+        "Authorization": "Basic YWJjZGVmZ2g6aGk="
+      },
       "query": {
-        "ARG_SRC": "${{sourceImage}}",
-        "ARG_DST": "${{targetImage}}"
+        "ARG_SRC": "$SOURCE_IMAGE",
+        "ARG_DST": "$TARGET_IMAGE"
       },
       "form": {
-        "ARG_SRC": "${{sourceImage}}",
-        "ARG_DST": "${{targetImage}}"
+        "ARG_SRC": "$SOURCE_IMAGE",
+        "ARG_DST": "$TARGET_IMAGE"
       },
       "json": {
-        "ARG_SRC": "${{sourceImage}}",
-        "ARG_DST": "${{targetImage}}"
+        "ARG_SRC": "$SOURCE_IMAGE",
+        "ARG_DST": "$TARGET_IMAGE"
       }
     }
   },
