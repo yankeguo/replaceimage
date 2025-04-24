@@ -71,8 +71,10 @@ func (m *Replacer) Lookup(namespace string, image string) (newImage string, ok b
 	image = standardizeImage(image)
 
 	// static mappings
-	if newImage, ok = m.opts.ImageMappings[image]; ok {
-		return
+	if m.opts.ImageMappings != nil {
+		if newImage, ok = m.opts.ImageMappings[image]; ok {
+			return
+		}
 	}
 
 	// dynamic mappings
