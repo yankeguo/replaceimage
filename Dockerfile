@@ -1,7 +1,11 @@
-FROM golang:1.23 AS builder
+FROM golang:1.24 AS builder
+
 ENV CGO_ENABLED=0
+
 WORKDIR /go/src/app
+
 ADD . .
+
 RUN go build -o /replaceimage
 
 FROM busybox
