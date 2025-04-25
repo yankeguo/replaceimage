@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## v0.3.0 - 2025-04-25
+#### Bug Fixes
+- allow non static mappings - (2a1aa2e) - GUO YANKE
+#### Build system
+- add ca-certificates - (30f4541) - GUO YANKE
+- update docker version - (8190624) - GUO YANKE
+#### Documentation
+- update README.md - (339d11b) - GUO YANKE
+- update README.md [skip ci] - (4863fe9) - GUO YANKE
+#### Features
+- complete imageAutoMapping - (cd2fcda) - GUO YANKE
+- add namespace field - (dd2103c) - GUO YANKE
+- refine code - (3cda29e) - GUO YANKE
+- add flattenImage - (197287d) - GUO YANKE
+- update options for imageAutoMapping - (712ae4f) - GUO YANKE
+
+- - -
+
 ## v0.2.0 - 2025-01-10
 #### Bug Fixes
 - correct imagePullSecrets modification - (d2a4cfa) - GUO YANKE
