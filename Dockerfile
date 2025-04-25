@@ -8,7 +8,9 @@ ADD . .
 
 RUN go build -o /replaceimage
 
-FROM busybox
+FROM alpine:3.21
+
+RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /replaceimage /replaceimage
 
